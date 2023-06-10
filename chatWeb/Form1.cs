@@ -70,8 +70,10 @@ namespace chatWeb
                         if (friend.Id.Equals(userId))
                         {
                             //渲染聊天框,;聊天框实现方式：可以给每个好友一个聊天框。
-                            //
+                            //聊天框内容：1 自增id 2 发送方 3 接受方 4 消息
                             
+
+
 
 
 

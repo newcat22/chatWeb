@@ -1,28 +1,24 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using Newtonsoft.Json;
 using SignalRWebApp.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 namespace chatWeb
 {
     public partial class Form1 : Form
     {
 
-        private HubConnection connection;
+        private HubConnection connection;        
+
+
         public Form1()
         {
             InitializeComponent();
-            
 
 
         }
@@ -37,24 +33,24 @@ namespace chatWeb
 
             // 创建连接
             // 创建一个 SignalR 连接
-             connection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7106/chatOneFriend", options =>
-                {
-                    options.Headers.Add("Id", id);
-                    options.HttpMessageHandlerFactory = _ =>
-                    {
-                        var handler = new HttpClientHandler();
-                        var container1 = new CookieContainer();
-                        // 添加已保存的 cookie
-                        handler.CookieContainer = container1;
-                        //handler.CookieContainer.Add(new Cookie("test","123"));
-                        handler.CookieContainer.Add(new Uri("https://localhost:7106"), new Cookie("test", "123"));
-                        // 允许跨域请求携带 cookies
-                        handler.UseCookies = true;
-                        return handler;
-                    };
-                })
-                .Build();
+            connection = new HubConnectionBuilder()
+               .WithUrl("https://localhost:7106/chatOneFriend", options =>
+               {
+                   options.Headers.Add("Id", id);
+                   options.HttpMessageHandlerFactory = _ =>
+                   {
+                       var handler = new HttpClientHandler();
+                       var container1 = new CookieContainer();
+                       // 添加已保存的 cookie
+                       handler.CookieContainer = container1;
+                       //handler.CookieContainer.Add(new Cookie("test","123"));
+                       handler.CookieContainer.Add(new Uri("https://localhost:7106"), new Cookie("test", "123"));
+                       // 允许跨域请求携带 cookies
+                       handler.UseCookies = true;
+                       return handler;
+                   };
+               })
+               .Build();
 
             // 接收消息
             connection.On<string, string>("ReceiveMessage", (userId, message) =>
@@ -128,11 +124,16 @@ namespace chatWeb
 
 
                 //8 将 JSON 字符串解析为 UserToFriend 对象
-                ResultBean userToFriend = JsonConvert.DeserializeObject<ResultBean>(responseBody);
+                ResultBean resultBean = JsonConvert.DeserializeObject<ResultBean>(responseBody);
+                // 首先将 Data 属性序列化为 JSON 字符串
+                string jsonUserInfo = JsonConvert.SerializeObject(resultBean.Data);
+
+                // 然后反序列化为 UserInfo 对象
+                UserInfo userInfo = JsonConvert.DeserializeObject<UserInfo>(jsonUserInfo);
 
 
-                //9 渲染UI，取出信息放在页面的某个文本框中
-                
+                //9 使用userInfo渲染UI，取出信息放在页面的某个文本框中
+
                 return;
             }
             catch (Exception ex)
@@ -140,7 +141,7 @@ namespace chatWeb
                 // 在这里处理请求错误，例如显示错误消息
                 Console.WriteLine("\nException Caught!");
                 Console.WriteLine("Message :{0} ", ex.Message);
-                return ;
+                return;
             }
 
         }

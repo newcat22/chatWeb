@@ -20,6 +20,8 @@ namespace chatWeb
         private List<UserInfo> friendsInfo;
         //选中当前聊天用户
         private UserInfo talkUserInfo;
+        //选中当前添加好友
+        private UserInfo addUserInfo;
 
         public Form1()
         {
@@ -181,9 +183,9 @@ namespace chatWeb
 
 
         /// <summary>
-        /// 好友列表选中事件
+        /// 好友列表选中事件：聊天
         /// </summary>        
-        public void selectAction() 
+        public void selectTalkAction() 
         { 
             //1 双击好友列表的好友，获取好友的UserInfo
             UserInfo userInfo = null;
@@ -191,6 +193,20 @@ namespace chatWeb
             //2 将好友的UserInfo赋值给当前聊天对象
             talkUserInfo = userInfo;
         
+        }
+
+
+        /// <summary>
+        /// 好友列表选中事件:添加好友
+        /// </summary>        
+        public void selectAddAction()
+        {
+            //1 双击好友列表的好友，获取好友的UserInfo
+            UserInfo userInfo = null;
+
+            //2 将好友的UserInfo赋值给当前聊天对象
+            addUserInfo = userInfo;
+
         }
 
 
@@ -394,6 +410,62 @@ namespace chatWeb
                 Console.WriteLine("Message :{0} ", ex.Message);
                 return;
             }
+        }
+
+        /// <summary>
+        /// 添加好友
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button7_Click(object sender, EventArgs e)
+        {
+            // 1 创建一个 HttpClient 实例
+            HttpClient client = new HttpClient();
+            string userId = userInfoCurrent.Id;
+            //双击选择添加好友,获取双击得到的对象，得到Id  
+            string friendId = addUserInfo.Id;
+
+            // 2 构造URL
+            string url = "https://localhost:7106/Home/addFriend?userId=userId&friendId=friendId";
+            try
+            {
+                // 3 发送 GET 请求
+                HttpResponseMessage response = client.GetAsync(url).Result;
+
+                // 4 确保 HTTP 响应状态码为成功
+                response.EnsureSuccessStatusCode();
+
+                // 5 读取响应内容
+                string responseBody = response.Content.ReadAsStringAsync().Result;
+
+
+                //6 将 JSON 字符串解析为 resultBean 对象
+                ResultBean resultBean = JsonConvert.DeserializeObject<ResultBean>(responseBody);
+
+                //7 前端渲染结果，注册成功或者注册失败  弹框               
+                if (resultBean.Success)
+                {
+
+                }
+                else
+                {
+
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                // 在这里处理请求错误，例如显示错误消息
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", ex.Message);
+                return;
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     } 
 }

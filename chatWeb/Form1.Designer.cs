@@ -41,7 +41,7 @@
             // 
             this.button1.Location = new System.Drawing.Point(113, 102);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.Size = new System.Drawing.Size(109, 47);
             this.button1.TabIndex = 0;
             this.button1.Text = "登录";
             this.button1.UseVisualStyleBackColor = true;
@@ -60,7 +60,7 @@
             // 
             this.button3.Location = new System.Drawing.Point(237, 102);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.Size = new System.Drawing.Size(152, 47);
             this.button3.TabIndex = 2;
             this.button3.Text = "一对一发消息";
             this.button3.UseVisualStyleBackColor = true;
@@ -70,7 +70,7 @@
             // 
             this.button4.Location = new System.Drawing.Point(113, 168);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 23);
+            this.button4.Size = new System.Drawing.Size(109, 41);
             this.button4.TabIndex = 3;
             this.button4.Text = "注册";
             this.button4.UseVisualStyleBackColor = true;
@@ -80,7 +80,7 @@
             // 
             this.button5.Location = new System.Drawing.Point(237, 168);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(75, 23);
+            this.button5.Size = new System.Drawing.Size(152, 41);
             this.button5.TabIndex = 4;
             this.button5.Text = "查询全部用户";
             this.button5.UseVisualStyleBackColor = true;
@@ -90,7 +90,7 @@
             // 
             this.button6.Location = new System.Drawing.Point(113, 230);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(75, 23);
+            this.button6.Size = new System.Drawing.Size(109, 41);
             this.button6.TabIndex = 5;
             this.button6.Text = "查询好友列表";
             this.button6.UseVisualStyleBackColor = true;
@@ -100,7 +100,7 @@
             // 
             this.button7.Location = new System.Drawing.Point(237, 230);
             this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(75, 23);
+            this.button7.Size = new System.Drawing.Size(152, 41);
             this.button7.TabIndex = 6;
             this.button7.Text = "添加好友";
             this.button7.UseVisualStyleBackColor = true;

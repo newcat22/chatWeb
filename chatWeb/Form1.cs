@@ -105,7 +105,6 @@ namespace chatWeb
                 // 5 读取响应内容
                 string responseBody = response.Content.ReadAsStringAsync().Result;
 
-
                 // 6 从 Set-Cookie 头中获取 用户的Id
                 var setCookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
                 string cookie = setCookieHeader;

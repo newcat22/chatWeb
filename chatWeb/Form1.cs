@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using SignalRWebApp.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +12,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using Newtonsoft.Json;
 namespace chatWeb
 {
     public partial class Form1 : Form
@@ -26,6 +27,10 @@ namespace chatWeb
 
         }
 
+        /// <summary>
+        /// 建立SignalR链接，注意每个用户都需要建立一个链接。
+        /// </summary>
+        /// <param name="id"></param>
         public void chatHub1(string id)
         {
 
@@ -83,25 +88,25 @@ namespace chatWeb
         {
 
 
-            // 创建一个 HttpClient 实例
+            // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
 
-            // 构造 URL
+            // 2 构造URL
             string url = "https://localhost:7106/Home/loginUser?name=xulong&password=123";
 
             try
             {
-                // 发送 GET 请求
+                // 3 发送 GET 请求
                 HttpResponseMessage response = client.GetAsync(url).Result;
 
-                // 确保 HTTP 响应状态码为成功
+                // 4 确保 HTTP 响应状态码为成功
                 response.EnsureSuccessStatusCode();
 
-                // 读取响应内容
+                // 5 读取响应内容
                 string responseBody = response.Content.ReadAsStringAsync().Result;
 
 
-                // 从 Set-Cookie 头中获取 用户的Id
+                // 6 从 Set-Cookie 头中获取 用户的Id
                 var setCookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
                 string cookie = setCookieHeader;
                 string[] pairs = cookie.Split(';');
@@ -119,15 +124,16 @@ namespace chatWeb
                     }
                 }
 
-                //创建singalR链接 
+                //7 创建singalR链接 
                 chatHub1(id);
 
 
-                // 将 JSON 字符串解析为 UserToFriend 对象
-                //UserToFriend userToFriend = JsonConvert.DeserializeObject<UserToFriend>(responseBody);
+                //8 将 JSON 字符串解析为 UserToFriend 对象
+                ResultBean userToFriend = JsonConvert.DeserializeObject<ResultBean>(responseBody);
 
-                // 返回 UserToFriend 对象
-                //return userToFriend;
+
+                //9 渲染UI，取出信息放在页面的某个文本框中
+                
                 return;
             }
             catch (Exception ex)

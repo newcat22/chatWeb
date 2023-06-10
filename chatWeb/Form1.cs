@@ -114,7 +114,7 @@ namespace chatWeb
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
             string name = "";
-            string password = ""
+            string password = "";
 
             // 2 构造URL
             string url = "https://localhost:7106/Home/loginUser?name=xulong&password=123";

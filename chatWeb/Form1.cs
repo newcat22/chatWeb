@@ -7,7 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace chatWeb
 {
     public partial class Form1 : Form
@@ -23,10 +26,82 @@ namespace chatWeb
         //选中当前添加好友
         private UserInfo addUserInfo;
 
+        //查询全部用户
+        private Dictionary<string, UserInfo> userInfoDict = new Dictionary<string, UserInfo>();
+
+        //查询全部好友
+        private Dictionary<string, UserInfo> userInfoFriendsDict = new Dictionary<string, UserInfo>();
+
+        string line = "";
+
         public Form1()
         {
             InitializeComponent();
 
+
+        }
+
+        public void refindFriend()
+        {
+            //先清理
+            listBoxFriends.Items.Clear();
+            userInfoFriendsDict.Clear();
+            // 1 创建一个 HttpClient 实例
+            HttpClient client = new HttpClient();
+            string userId = userInfoCurrent.Id;
+            // 2 构造URL
+            string url = "https://localhost:7106/Home/selectFriend?userId=" + userId + "";
+            try
+            {
+                // 3 发送 GET 请求
+                HttpResponseMessage response = client.GetAsync(url).Result;
+
+                // 4 确保 HTTP 响应状态码为成功
+                response.EnsureSuccessStatusCode();
+
+                // 5 读取响应内容
+                string responseBody = response.Content.ReadAsStringAsync().Result;
+
+
+                //6 将 JSON 字符串解析为 ResultBean 对象
+                ResultBean resultBean = JsonConvert.DeserializeObject<ResultBean>(responseBody);
+
+                //7 前端渲染结果
+                if (resultBean.Success)
+                {
+                    //查询成功展示好友列表
+                    // 首先将 Data 属性序列化为 JSON 字符串
+                    string jsonUserInfo = JsonConvert.SerializeObject(resultBean.Data);
+                    // 然后反序列化为 UserInfo 对象
+                    List<UserInfo> friendList = JsonConvert.DeserializeObject<List<UserInfo>>(jsonUserInfo);
+                    // 赋值给当前用户的好友
+                    friendsInfo = friendList;
+
+                    //8 使用friendsInfo渲染好友列表
+
+                    foreach (UserInfo userInfo in friendsInfo)
+                    {
+                        listBoxFriends.Items.Add(userInfo.Name);
+                        userInfoFriendsDict.Add(userInfo.Name, userInfo);
+                    }
+
+
+                }
+                else
+                {
+                    //查询无好友
+                    MessageBox.Show("查无好友请添加好友");
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                // 在这里处理请求错误，例如显示错误消息
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", ex.Message);
+                return;
+            }
 
         }
 
@@ -62,8 +137,20 @@ namespace chatWeb
             // 接收消息
             connection.On<string, string>("ReceiveMessage", (userId, message) =>
             {
+                
                 this.Invoke((Action)(() =>
                 {
+                    refindFriend();                   
+                    if (talkUserInfo != null) {
+                        if (talkUserInfo.Id.Equals(userId))
+                        {
+
+                        }
+                        else
+                        {
+                            textBoxWindow.Clear();
+                        }
+                    }
                     //遍历好友列表，找到是哪位好友给自己发消息
                     friendsInfo.ForEach(friend =>
                     {
@@ -71,10 +158,12 @@ namespace chatWeb
                         {
                             //渲染聊天框,;聊天框实现方式：可以给每个好友一个聊天框。
                             //聊天框内容：1 自增id 2 发送方 3 接受方 4 消息
+                            textBoxWindow.Text += "\r\n";
+                            textBoxWindow.Text += friend.Name;
+                            textBoxWindow.Text += "\r\n";
+
+                            textBoxWindow.Text += message;
                             
-
-
-
 
 
                         }
@@ -117,12 +206,12 @@ namespace chatWeb
 
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
-            string name = "";
-            string password = "";
+            string name = textBoxName.Text; 
+            string password = textBoxPassword.Text;
 
             // 2 构造URL
-            string url = "https://localhost:7106/Home/loginUser?name=xulong&password=123";
-            //string url = "https://localhost:7106/Home/loginUser?name="+name+"&password="+password+"";
+            //string url = "https://localhost:7106/Home/loginUser?name=xulong&password=123";
+            string url = "https://localhost:7106/Home/loginUser?name="+name+"&password="+password+"";
             try
             {
                 // 3 发送 GET 请求
@@ -163,13 +252,16 @@ namespace chatWeb
                     // 赋值给当前用户
                     userInfoCurrent = userInfo;
                     //8 使用userInfoCurrent渲染UI，取出信息放在页面的某个文本框中
-
+                    textBoxNameShow.Text = userInfoCurrent.Name; 
+                    
+                    MessageBox.Show("登录成功");
+                    refindFriend();
 
                 }
                 else
                 {
                     //登录失败，弹窗提示重新登录
-
+                    MessageBox.Show("登录失败");
                 }
                 return;
             }
@@ -184,32 +276,10 @@ namespace chatWeb
         }
 
 
-        /// <summary>
-        /// 好友列表选中事件：聊天
-        /// </summary>        
-        public void selectTalkAction() 
-        { 
-            //1 双击好友列表的好友，获取好友的UserInfo
-            UserInfo userInfo = null;
-
-            //2 将好友的UserInfo赋值给当前聊天对象
-            talkUserInfo = userInfo;
-        
-        }
 
 
-        /// <summary>
-        /// 好友列表选中事件:添加好友
-        /// </summary>        
-        public void selectAddAction()
-        {
-            //1 双击好友列表的好友，获取好友的UserInfo
-            UserInfo userInfo = null;
 
-            //2 将好友的UserInfo赋值给当前聊天对象
-            addUserInfo = userInfo;
 
-        }
 
 
         /// <summary>
@@ -223,15 +293,20 @@ namespace chatWeb
             // 发送消息
             //var userId = txtUserId.Text;
             //var message = txtMessage.Text;
-
+            selectTalkAction();
             string receiveId = talkUserInfo.Id;
             string sendId = userInfoCurrent.Id;
-            string message = "我是消息";
+            string message = textBoxLine.Text;
             /*
              3c7054cb-98c4-4015-bd63-ceb6bdb6f1b6：接受信息用户id
              3fcd8626-1dd8-48a2-bf73-3d161f776122：发送信息用户id
              我是消息：发送的消息                         
              */
+            textBoxWindow.Text += "\r\n";
+            textBoxWindow.Text += userInfoCurrent.Name;
+            textBoxWindow.Text += "\r\n";
+
+            textBoxWindow.Text += message;
             connection.InvokeAsync("SendMessage", receiveId, sendId, message)
                 .ContinueWith(task =>
                 {
@@ -254,9 +329,11 @@ namespace chatWeb
         {
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
+            string name = textBoxName.Text;
+            string password = textBoxPassword.Text;
 
             // 2 构造URL
-            string url = "https://localhost:7106/Home/registerUser?name=xulong&password=123";
+            string url = "https://localhost:7106/Home/registerUser?name="+ name + "&password="+ password + "";
             try
             {
                 // 3 发送 GET 请求
@@ -275,11 +352,11 @@ namespace chatWeb
                 //7 前端渲染结果，注册成功或者注册失败  弹框               
                 if (resultBean.Success)
                 {
-
+                    MessageBox.Show("注册成功");
                 }
                 else
                 {
-
+                    MessageBox.Show("注册失败");
                 }
 
                 return;
@@ -294,13 +371,33 @@ namespace chatWeb
         }
 
         /// <summary>
+        /// 好友列表选中事件：聊天
+        /// </summary>        
+        public void selectTalkAction()
+        {
+            //1 双击好友列表的好友，获取好友的UserInfo           
+            var selectedName = listBoxFriends.SelectedItem.ToString();
+            if (userInfoFriendsDict.TryGetValue(selectedName, out var selectedUserInfo))
+            {
+                // Now you have the selected UserInfo
+                // Do something with selectedUserInfo
+                //2 将好友的UserInfo赋值给当前聊天对象
+                talkUserInfo = selectedUserInfo;
+            }
+
+
+        }
+
+        /// <summary>
         /// 查询好友列表
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void button6_Click(object sender, EventArgs e)
         {
-
+            //先清理
+            listBoxFriends.Items.Clear();
+            userInfoFriendsDict.Clear();
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
             string userId = userInfoCurrent.Id;
@@ -333,13 +430,19 @@ namespace chatWeb
                     friendsInfo = friendList;
 
                     //8 使用friendsInfo渲染好友列表
+                    
+                    foreach (UserInfo userInfo in friendsInfo)
+                    {
+                        listBoxFriends.Items.Add(userInfo.Name);
+                        userInfoFriendsDict.Add(userInfo.Name, userInfo);
+                    }
+
 
                 }
                 else
                 {
                     //查询无好友
-
-
+                    MessageBox.Show("查无好友请添加好友");
                 }
 
                 return;
@@ -355,6 +458,10 @@ namespace chatWeb
 
         }
 
+
+
+
+
         /// <summary>
         /// 查询全部用户
         /// </summary>
@@ -362,9 +469,12 @@ namespace chatWeb
         /// <param name="e"></param>
         private void button5_Click(object sender, EventArgs e)
         {
+            //先清理
+            listBoxAll.Items.Clear();
+            userInfoDict.Clear();
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
-            string userId = userInfoCurrent.Id;
+            
             // 2 构造URL
             string url = "https://localhost:7106/Home/selectUser";
             try
@@ -392,14 +502,19 @@ namespace chatWeb
                     List<UserInfo> userInfoList = JsonConvert.DeserializeObject<List<UserInfo>>(jsonUserInfo);
 
 
-
                     //8 使用userInfoList渲染全部用户
+                    foreach (UserInfo userInfo in userInfoList)
+                    {
+                        listBoxAll.Items.Add(userInfo.Name);
+                        userInfoDict.Add(userInfo.Name, userInfo);
+                    }
+
 
                 }
                 else
                 {
-                    //查询无好友
-
+                    //查询无用户
+                    MessageBox.Show("查无用户");
 
                 }
 
@@ -413,7 +528,22 @@ namespace chatWeb
                 return;
             }
         }
+        /// <summary>
+        /// 好友列表选中事件:添加好友
+        /// </summary>        
+        public void selectAddAction()
+        {
+            //1 双击好友列表的好友，获取好友的UserInfo           
+            var selectedName = listBoxAll.SelectedItem.ToString();
+            if (userInfoDict.TryGetValue(selectedName, out var selectedUserInfo))
+            {
+                // Now you have the selected UserInfo
+                // Do something with selectedUserInfo
+                //2 将好友的UserInfo赋值给当前聊天对象
+                addUserInfo = selectedUserInfo;
+            }
 
+        }
         /// <summary>
         /// 添加好友
         /// </summary>
@@ -423,12 +553,14 @@ namespace chatWeb
         {
             // 1 创建一个 HttpClient 实例
             HttpClient client = new HttpClient();
+
             string userId = userInfoCurrent.Id;
             //双击选择添加好友,获取双击得到的对象，得到Id  
+            selectAddAction();
             string friendId = addUserInfo.Id;
 
             // 2 构造URL
-            string url = "https://localhost:7106/Home/addFriend?userId=userId&friendId=friendId";
+            string url = "https://localhost:7106/Home/addFriend?userId="+ userId + "&friendId="+ friendId + "";
             try
             {
                 // 3 发送 GET 请求
@@ -447,11 +579,11 @@ namespace chatWeb
                 //7 前端渲染结果，注册成功或者注册失败  弹框               
                 if (resultBean.Success)
                 {
-
+                    MessageBox.Show("添加好友成功");
                 }
                 else
                 {
-
+                    MessageBox.Show("添加好友失败");
                 }
 
                 return;
@@ -466,6 +598,16 @@ namespace chatWeb
         }
 
         private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBoxLine_TextChanged(object sender, EventArgs e)
         {
 
         }
